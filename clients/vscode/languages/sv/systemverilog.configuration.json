@@ -1,0 +1,152 @@
+{
+  "comments": {
+    "lineComment": "//",
+    "blockComment": [
+      "/*",
+      "*/"
+    ]
+  },
+  "brackets": [
+    [
+      "{",
+      "}"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "(",
+      ")"
+    ],
+    [
+      "begin",
+      "end"
+    ],
+    [
+      "casex",
+      "endcase"
+    ],
+    [
+      "casez",
+      "endcase"
+    ],
+    [
+      "case",
+      "endcase"
+    ],
+    [
+      "checker",
+      "endchecker"
+    ],
+    [
+      "clocking",
+      "endclocking"
+    ],
+    [
+      "config",
+      "endconfig"
+    ],
+    [
+      "covergroup",
+      "endgroup"
+    ],
+    [
+      "fork",
+      "join"
+    ],
+    [
+      "fork",
+      "join_any"
+    ],
+    [
+      "fork",
+      "join_none"
+    ],
+    [
+      "generate",
+      "endgenerate"
+    ],
+    [
+      "macromodule",
+      "endmodule"
+    ],
+    [
+      "module",
+      "endmodule"
+    ],
+    [
+      "package",
+      "endpackage"
+    ],
+    [
+      "primitive",
+      "endprimitive"
+    ],
+    [
+      "program",
+      "endprogram"
+    ],
+    [
+      "randcase",
+      "endcase"
+    ],
+    [
+      "specify",
+      "endspecify"
+    ],
+    [
+      "table",
+      "endtable"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "{",
+      "}"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "(",
+      ")"
+    ],
+    [
+      "'",
+      "'"
+    ],
+    [
+      "\"",
+      "\""
+    ]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^[ \\t\\n]*(?://[ \\t\\n]*#?region|`(?:ifdef|ifndef|elsif|else)\\b|\\b(?:(?:macro)?module|class|task|function|interface|property|sequence|package|program)\\b)",
+      "end": "^[ \\t\\n]*(?://[ \\t\\n]*#?endregion|`(?:elsif|else|endif)\\b|\\b(?:endmodule|endclass|endtask|endfunction|endinterface|endproperty|endsequence|endpackage|endprogram)\\b)"
+    }
+  }
+}

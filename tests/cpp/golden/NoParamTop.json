@@ -1,0 +1,478 @@
+[
+  [
+    {
+      "range": {
+        "start": {
+          "line": 159,
+          "character": 26
+        },
+        "end": {
+          "line": 159,
+          "character": 39
+        }
+      },
+      "severity": "Warning",
+      "code": "width-expand",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#width-expand"
+      },
+      "message": "implicit conversion expands from 1 to 32 bits"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 192,
+          "character": 9
+        },
+        "end": {
+          "line": 192,
+          "character": 17
+        }
+      },
+      "severity": "Warning",
+      "code": "empty-output-connection",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#empty-output-connection"
+      },
+      "message": "output port 'data_out' is explicitly connected to nothing"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 205,
+          "character": 13
+        },
+        "end": {
+          "line": 205,
+          "character": 21
+        }
+      },
+      "severity": "Warning",
+      "code": "empty-output-connection",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#empty-output-connection"
+      },
+      "message": "output port 'data_out' is explicitly connected to nothing"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 95,
+          "character": 47
+        },
+        "end": {
+          "line": 95,
+          "character": 55
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-port",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-port"
+      },
+      "message": "unused port signal 'id_array'",
+      "tags": [
+        "Unnecessary"
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 96,
+          "character": 29
+        },
+        "end": {
+          "line": 96,
+          "character": 35
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-port",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-port"
+      },
+      "message": "unused port signal 'pkt_in'",
+      "tags": [
+        "Unnecessary"
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 109,
+          "character": 17
+        },
+        "end": {
+          "line": 109,
+          "character": 28
+        }
+      },
+      "severity": "Warning",
+      "code": "unassigned-variable",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unassigned-variable"
+      },
+      "message": "variable 'sub_data_in' is never assigned a value"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 110,
+          "character": 17
+        },
+        "end": {
+          "line": 110,
+          "character": 29
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-but-set-variable",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-but-set-variable"
+      },
+      "message": "variable 'sub_data_out' is assigned but its value is never used"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 120,
+          "character": 17
+        },
+        "end": {
+          "line": 120,
+          "character": 32
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-but-set-variable",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-but-set-variable"
+      },
+      "message": "variable 'inst_array_test' is assigned but its value is never used"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 134,
+          "character": 14
+        },
+        "end": {
+          "line": 134,
+          "character": 19
+        }
+      },
+      "severity": "Warning",
+      "code": "case-enum-explicit",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#case-enum-explicit"
+      },
+      "message": "enumeration value 'STATE_C' not explicitly handled in case statement"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 269,
+          "character": 20
+        },
+        "end": {
+          "line": 269,
+          "character": 32
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-but-set-variable",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-but-set-variable"
+      },
+      "message": "variable 'nested_array' is assigned but its value is never used"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 280,
+          "character": 12
+        },
+        "end": {
+          "line": 280,
+          "character": 30
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'single_struct.addr' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 361,
+                "character": 8
+              },
+              "end": {
+                "line": 361,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 281,
+          "character": 12
+        },
+        "end": {
+          "line": 281,
+          "character": 30
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'single_struct.data' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 362,
+                "character": 8
+              },
+              "end": {
+                "line": 362,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 282,
+          "character": 12
+        },
+        "end": {
+          "line": 282,
+          "character": 31
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'single_struct.valid' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 363,
+                "character": 8
+              },
+              "end": {
+                "line": 363,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 290,
+          "character": 12
+        },
+        "end": {
+          "line": 290,
+          "character": 24
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'struct_array' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 367,
+                "character": 8
+              },
+              "end": {
+                "line": 367,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 303,
+          "character": 12
+        },
+        "end": {
+          "line": 303,
+          "character": 24
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'nested_array' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 371,
+                "character": 8
+              },
+              "end": {
+                "line": 371,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 312,
+          "character": 12
+        },
+        "end": {
+          "line": 312,
+          "character": 21
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'pkg_array' driven by always_ff procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 374,
+                "character": 8
+              },
+              "end": {
+                "line": 374,
+                "character": 8
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 351,
+          "character": 12
+        },
+        "end": {
+          "line": 351,
+          "character": 29
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'nested_struct.tag' driven by always_comb procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 297,
+                "character": 12
+              },
+              "end": {
+                "line": 297,
+                "character": 12
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 352,
+          "character": 12
+        },
+        "end": {
+          "line": 352,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "code": "multiple-always-assigns",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#multiple-always-assigns"
+      },
+      "message": "variable 'nested_struct.enable' driven by always_comb procedure cannot be written to by any other process",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://hdl_test.sv",
+            "range": {
+              "start": {
+                "line": 298,
+                "character": 12
+              },
+              "end": {
+                "line": 298,
+                "character": 12
+              }
+            }
+          },
+          "message": "also assigned here"
+        }
+      ]
+    }
+  ]
+]

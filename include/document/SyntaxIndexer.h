@@ -1,0 +1,100 @@
+//------------------------------------------------------------------------------
+// SyntaxIndexer.h
+// Syntax visitor for collecting macro usages
+//
+// SPDX-FileCopyrightText: Hudson River Trading
+// SPDX-License-Identifier: MIT
+//------------------------------------------------------------------------------
+#pragma once
+
+#include "completions/CompletionContext.h"
+#include <vector>
+
+#include "slang/parsing/Token.h"
+#include "slang/parsing/TokenKind.h"
+#include "slang/syntax/SyntaxNode.h"
+#include "slang/syntax/SyntaxTree.h"
+#include "slang/text/SourceLocation.h"
+#include "slang/util/FlatMap.h"
+
+namespace server {
+
+/// Collects syntax info for a Shallow Analysis based on its syntax tree
+/// - SourceLocation -> Token
+/// - Token -> SyntaxNode
+/// - Syntax nodes potentially used in inlay hints
+class SyntaxIndexer {
+private:
+    slang::BufferID m_buffer;
+    const slang::SourceManager* m_sourceManager = nullptr;
+    const slang::syntax::SyntaxNode* m_currentMacroUsage = nullptr;
+    std::vector<const slang::parsing::Token*> m_currentExpansionTokens;
+
+public:
+    /// Collected declared tokens in order (tokens in the actual file)
+    std::vector<const slang::parsing::Token*> collected;
+
+    /// Collected disabled regions from preprocessor conditionals in the file
+    std::vector<slang::SourceRange> disabledRegions;
+
+    /// Mapping of tokens to their parent syntax node
+    slang::flat_hash_map<const slang::parsing::Token*, const slang::syntax::SyntaxNode*>
+        tokenToParent;
+
+    /// Map from offset to syntax nodes collected for inlay hints
+    std::map<uint32_t, slang::not_null<const slang::syntax::SyntaxNode*>> collectedHints;
+
+    /// Tokens from a macro expansion, stored as pointers into the syntax tree
+    struct MacroExpansionTokens {
+        std::vector<const slang::parsing::Token*> tokens;
+
+        /// Stringify the expansion on demand, including trivia
+        std::string getText() const;
+    };
+
+    /// Map from macro usage syntax node to its expanded tokens
+    slang::flat_hash_map<const slang::syntax::SyntaxNode*, MacroExpansionTokens> macroExpansions;
+
+    /// @brief Constructor that takes a syntax tree and the buffer to index tokens for
+    /// @param tree The syntax tree to analyze
+    /// @param focusBuffer The buffer whose tokens should be collected. Defaults to the tree's
+    ///        main (first) source buffer. For an `\`include` fragment analyzed in its owner's
+    ///        tree, this is the fragment's own included buffer rather than the owner's main file,
+    ///        so position-based lookups (goto, hover, references, ...) resolve against the
+    ///        fragment's text instead of finding nothing.
+    /// Also macro usage's parent pointers at the syntax's parents that they're trivia for
+    SyntaxIndexer(const slang::syntax::SyntaxTree& tree,
+                  slang::BufferID focusBuffer = slang::BufferID());
+
+    /// Get the word token (identifier, system identifier, directive, macro usage, etc) at the given
+    /// location, or nullptr if none
+    const slang::parsing::Token* getWordTokenAt(slang::SourceLocation loc) const;
+
+    /// Get the token at the given location, or nullptr if none
+    const slang::parsing::Token* getTokenAt(slang::SourceLocation loc) const;
+
+    /// Get the syntax parent of a given token
+    const slang::syntax::SyntaxNode* getTokenParent(const slang::parsing::Token* tok) const;
+
+    /// Get the lowest level syntax node containing the location. Returns nullptr if outside the
+    /// [first, last] tokens
+    const slang::syntax::SyntaxNode* getSyntaxAt(slang::SourceLocation loc) const;
+
+private:
+    /// Whether the editor considers this location to be inside the given range
+    bool editorContains(slang::SourceRange range, slang::SourceLocation loc) const;
+    /// Get the index of the token before the given location, or -1 if before the first token
+    int tokenIndexBefore(slang::SourceLocation loc) const;
+    /// Whether this token kind is considered as some sort of identifier
+    bool isIdToken(const slang::parsing::TokenKind kind) const;
+    /// Recursively visit syntax nodes, called in constructor.
+    /// Also collects the disabled regions from the conditional `DirectiveSyntax` nodes.
+    void visit(const slang::syntax::SyntaxNode& root);
+    /// Process trivia on a token, extracting disabled regions from conditional directives.
+    /// Also descends into SkippedTokens trivia to find nested directives.
+    void processTrivia(std::span<const slang::parsing::Trivia> triviaList,
+                       const slang::syntax::SyntaxNode& parent);
+    /// Flush any pending macro expansion tokens to the macroExpansions map
+    void flushMacroExpansion();
+};
+} // namespace server
