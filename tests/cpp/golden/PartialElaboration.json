@@ -1,0 +1,75 @@
+[
+  [
+    {
+      "range": {
+        "start": {
+          "line": 10,
+          "character": 8
+        },
+        "end": {
+          "line": 10,
+          "character": 8
+        }
+      },
+      "severity": "Warning",
+      "code": "newline-eof",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#newline-eof"
+      },
+      "message": "no newline at end of file"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 12
+        },
+        "end": {
+          "line": 6,
+          "character": 12
+        }
+      },
+      "severity": "Error",
+      "message": "static assertion failed",
+      "relatedInformation": [
+        {
+          "location": {
+            "uri": "file://test.sv",
+            "range": {
+              "start": {
+                "line": 6,
+                "character": 29
+              },
+              "end": {
+                "line": 6,
+                "character": 29
+              }
+            }
+          },
+          "message": "comparison reduces to (2 == 1)"
+        }
+      ]
+    },
+    {
+      "range": {
+        "start": {
+          "line": 4,
+          "character": 26
+        },
+        "end": {
+          "line": 4,
+          "character": 27
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-parameter",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-parameter"
+      },
+      "message": "unused parameter 'z'",
+      "tags": [
+        "Unnecessary"
+      ]
+    }
+  ]
+]
