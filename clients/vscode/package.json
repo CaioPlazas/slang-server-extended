@@ -1,0 +1,804 @@
+{
+  "name": "slang-server-extended",
+  "displayName": "Slang Server Extended: Verilog/SystemVerilog LSP",
+  "description": "Verilog and SystemVerilog support via an extended fork of the slang language server, with support for unusual/ASIC project configurations (workDir, recursive incdirs, include-fragment resolution, a bundled Linux binary, and more). Fork of hudson-trading/slang-server.",
+  "version": "0.2.20",
+  "publisher": "CaioPlazas",
+  "keywords": [
+    "verilog",
+    "system verilog",
+    "systemverilog",
+    "fpga",
+    "slang"
+  ],
+  "homepage": "https://github.com/CaioPlazas/slang-server-extended",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CaioPlazas/slang-server-extended",
+    "directory": "clients/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/CaioPlazas/slang-server-extended/issues"
+  },
+  "engines": {
+    "vscode": "^1.96.2"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters",
+    "Formatters"
+  ],
+  "icon": "images/oldicon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/*.{v,sv,vh,svh}"
+  ],
+  "files": [
+    "dist",
+    "images",
+    "languages",
+    "resources",
+    "LICENSE",
+    "bin"
+  ],
+  "contributes": {
+    "configurationDefaults": {
+      "[systemverilog]": {
+        "editor.colorDecorators": false
+      },
+      "[verilog]": {
+        "editor.colorDecorators": false
+      },
+      "[verilogheader]": {
+        "editor.colorDecorators": false
+      },
+      "[systemverilogheader]": {
+        "editor.colorDecorators": false
+      },
+      "files.associations": {
+        "**/.slang/server.json": "jsonc",
+        "**/.slang/local/server.json": "jsonc"
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".slang/server.json",
+          ".slang/local/server.json"
+        ],
+        "url": "./resources/config.schema.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "verilog",
+        "aliases": [
+          "Verilog",
+          "verilog"
+        ],
+        "extensions": [
+          ".v",
+          ".vl"
+        ],
+        "icon": {
+          "light": "./resources/sv_light.svg",
+          "dark": "./resources/sv_dark.svg"
+        },
+        "configuration": "./languages/verilog/verilog.configuration.json"
+      },
+      {
+        "id": "verilogheader",
+        "aliases": [
+          "Verilog",
+          "verilog"
+        ],
+        "extensions": [
+          ".vh"
+        ],
+        "icon": {
+          "light": "./resources/svh_light.svg",
+          "dark": "./resources/svh_dark.svg"
+        },
+        "configuration": "./languages/verilog/verilog.configuration.json"
+      },
+      {
+        "id": "systemverilog",
+        "aliases": [
+          "System Verilog",
+          "systemverilog"
+        ],
+        "extensions": [
+          ".sv"
+        ],
+        "configuration": "./languages/sv/systemverilog.configuration.json",
+        "icon": {
+          "light": "./resources/sv_light.svg",
+          "dark": "./resources/sv_dark.svg"
+        }
+      },
+      {
+        "id": "systemverilogheader",
+        "aliases": [
+          "systemverilog"
+        ],
+        "extensions": [
+          ".svh"
+        ],
+        "configuration": "./languages/sv/systemverilog.configuration.json",
+        "icon": {
+          "light": "./resources/svh_light.svg",
+          "dark": "./resources/svh_dark.svg"
+        }
+      },
+      {
+        "id": "ucf",
+        "aliases": [
+          "vivado ucf",
+          "ucf constraints"
+        ],
+        "extensions": [
+          ".ucf"
+        ],
+        "configuration": "./languages/ucf/constraints.configuration.json"
+      },
+      {
+        "id": "sdc",
+        "aliases": [
+          "Synopsys Design Constraints"
+        ],
+        "extensions": [
+          ".sdc"
+        ],
+        "configuration": "./languages/sdc/sdc.configuration.json"
+      },
+      {
+        "id": "tcl",
+        "aliases": [
+          "Tcl",
+          "tcl"
+        ],
+        "extensions": [
+          ".tcl",
+          "tm",
+          "tk"
+        ],
+        "configuration": "./languages/tcl/tcl.configuration.json"
+      },
+      {
+        "id": "xdc",
+        "aliases": [
+          "Xilinx Design Constraints"
+        ],
+        "extensions": [
+          ".xdc"
+        ],
+        "configuration": "./languages/xdc/sdc.configuration.json"
+      },
+      {
+        "id": "dotf",
+        "aliases": [
+          "Verilog Filelist",
+          "verilog-filelist",
+          "dotf"
+        ],
+        "extensions": [
+          ".f"
+        ],
+        "configuration": "./languages/dotf/dotf.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "verilog",
+        "scopeName": "source.verilog",
+        "path": "./languages/verilog/verilog.tmLanguage.json"
+      },
+      {
+        "language": "verilogheader",
+        "scopeName": "source.systemverilog",
+        "path": "./languages/verilog/verilog.tmLanguage.json"
+      },
+      {
+        "language": "systemverilog",
+        "scopeName": "source.systemverilog",
+        "path": "./languages/sv/systemverilog.tmLanguage.json"
+      },
+      {
+        "language": "systemverilogheader",
+        "scopeName": "source.systemverilog",
+        "path": "./languages/sv/systemverilog.tmLanguage.json"
+      },
+      {
+        "language": "ucf",
+        "scopeName": "source.ucfconstraints",
+        "path": "./languages/ucf/ucf.tmLanguage.json"
+      },
+      {
+        "language": "sdc",
+        "scopeName": "source.sdc",
+        "path": "./languages/sdc/sdc.tmLanguage.json"
+      },
+      {
+        "language": "tcl",
+        "scopeName": "source.tcl",
+        "path": "./languages/tcl/tcl.tmlanguage.json"
+      },
+      {
+        "language": "xdc",
+        "scopeName": "source.sdc",
+        "path": "./languages/sdc/sdc.tmLanguage.json"
+      },
+      {
+        "scopeName": "markdown.systemverilog.codeblock",
+        "path": "./languages/sv/markdownblock.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.systemverilog": "source.systemverilog"
+        }
+      },
+      {
+        "scopeName": "markdown.verilog.codeblock",
+        "path": "./languages/verilog/markdownblock.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.verilog": "source.verilog"
+        }
+      },
+      {
+        "language": "dotf",
+        "scopeName": "source.f",
+        "path": "./languages/dotf/dotf.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "verilog",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilog",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilog",
+        "path": "./languages/sv/systemverilog.snippets.json"
+      },
+      {
+        "language": "verilogheader",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilogheader",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilogheader",
+        "path": "./languages/sv/systemverilog.snippets.json"
+      }
+    ],
+    "configuration": {
+      "title": "verilog configuration",
+      "properties": {
+        "slangCustom.formatDirs": {
+          "default": [],
+          "description": "Directories to format",
+          "deprecationMessage": "Use `slangCustom.formatters` instead.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slangCustom.formatters": {
+          "default": [],
+          "description": "List of formatter configurations. Each entry specifies a command, directories to format, and language IDs. File input is sent to stdin, and formatted output is read from stdout.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Formatter command (file contents sent to stdin, formatted output from stdout)"
+              },
+              "dirs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Directories to format. Relative to workspace root, and must not overlap. Formats all if omitted."
+              },
+              "languageIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "verilog",
+                    "systemverilog",
+                    "systemverilogheader",
+                    "verilogheader"
+                  ]
+                },
+                "default": [
+                  "verilog",
+                  "systemverilog"
+                ],
+                "description": "Language IDs to format (e.g., \"systemverilog\", \"verilog\")"
+              }
+            }
+          },
+          "type": "array"
+        },
+        "slangCustom.svFormat.command": {
+          "description": "Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout. E.g. `path/to/verible-format --indentation_spaces=4 -",
+          "default": "",
+          "deprecationMessage": "Use \"verilog.formatters\" instead.",
+          "type": "string"
+        },
+        "slangCustom.verilogFormat.command": {
+          "description": "Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout. E.g. `path/to/verible-format --indentation_spaces=4 -",
+          "default": "",
+          "deprecationMessage": "Use \"verilog.formatters\" instead.",
+          "type": "string"
+        },
+        "slangCustom.inactiveRegions.style": {
+          "default": "opacity",
+          "description": "How to visually indicate inactive preprocessor regions.",
+          "enum": [
+            "opacity",
+            "background",
+            "none"
+          ],
+          "type": "string"
+        },
+        "slangCustom.inactiveRegions.opacity": {
+          "default": 0.55,
+          "description": "Opacity of inactive regions (used only when style is \"opacity\").",
+          "type": "number"
+        },
+        "slangCustom.inactiveRegions.backgroundColor": {
+          "default": "#1212124C",
+          "description": "Background color for inactive regions (used only when style is \"background\").",
+          "type": "string"
+        },
+        "slangCustom.path": {
+          "description": "Path to slang-server (not slang)",
+          "default": "",
+          "type": "string"
+        },
+        "slangCustom.args": {
+          "default": [],
+          "description": "Arguments to pass to the slang-server. These are different from slang flags; for those open `.slang/server.json`",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slangCustom.debugArgs": {
+          "default": [],
+          "description": "Arguments to pass to slang-server when debugging",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "slangCustom.project.instancesView.copyHierarchyPath",
+        "title": "Copy Path",
+        "viewItems": [
+          "Instance"
+        ],
+        "icon": "$(files)",
+        "isSubmenu": true,
+        "keybind": "cmd+c"
+      },
+      {
+        "command": "slangCustom.project.instancesView.showInWaveform",
+        "title": "Show in Waveform",
+        "viewItems": [
+          "Instance"
+        ],
+        "icon": "$(graph-line)",
+        "keybind": "w"
+      },
+      {
+        "command": "slangCustom.project.setTopLevel",
+        "title": "Set Top Level",
+        "shortTitle": "Set Top",
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ],
+        "icon": "$(chip)"
+      },
+      {
+        "command": "slangCustom.project.selectTopLevel",
+        "title": "Slang Custom: Select Top Level",
+        "shortTitle": "Select Top"
+      },
+      {
+        "command": "slangCustom.project.clearTopLevel",
+        "title": "Clear Top Level",
+        "icon": "$(panel-close)"
+      },
+      {
+        "command": "slangCustom.project.fuzzyFindInstance",
+        "title": "Fuzzy Find Instances",
+        "icon": "$(search-view-icon)",
+        "keybind": "cmd+f",
+        "keybindContainer": true
+      },
+      {
+        "command": "slangCustom.project.setInstance",
+        "title": "Slang Custom: Select Instance"
+      },
+      {
+        "command": "slangCustom.project.showBuildFile",
+        "title": "Slang Custom: Open Build File",
+        "icon": "$(file)",
+        "shown": true
+      },
+      {
+        "command": "slangCustom.project.selectBuildFile",
+        "title": "Slang Custom: Select build file",
+        "icon": "$(file-directory)",
+        "shown": true
+      },
+      {
+        "command": "slangCustom.project.openServerConfig",
+        "title": "Slang Custom: Configure Slang",
+        "shortTitle": "Configure"
+      },
+      {
+        "command": "slangCustom.project.toggleParams",
+        "title": "Toggle Params",
+        "icon": "$(symbol-type-parameter)"
+      },
+      {
+        "command": "slangCustom.project.toggleData",
+        "title": "Toggle Data",
+        "icon": "$(symbol-variable)"
+      },
+      {
+        "command": "slangCustom.project.toggleHidden",
+        "title": "Toggle Macro Defined",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "slangCustom.project.refreshCompilation",
+        "title": "Slang Custom: Refresh Compilation",
+        "icon": "$(refresh)",
+        "shown": true
+      },
+      {
+        "command": "slangCustom.project.showSourceFile",
+        "title": "Show Module",
+        "viewItems": [
+          "Module"
+        ],
+        "icon": {
+          "light": "./resources/light/go-to-file.svg",
+          "dark": "./resources/dark/go-to-file.svg"
+        }
+      },
+      {
+        "command": "slangCustom.project.showInWaveform",
+        "title": "Show in Waveform",
+        "icon": "$(graph-line)",
+        "keybind": "w"
+      },
+      {
+        "command": "slangCustom.project.showInEditorFromNetlist",
+        "title": "Show in Editor",
+        "icon": "$(file-code)",
+        "viewOverride": "waveformViewerNetlistView",
+        "keybind": "e"
+      },
+      {
+        "command": "slangCustom.project.showInEditorFromVaporview",
+        "title": "Show in Editor",
+        "icon": "$(file-code)",
+        "group": "2_variables@2.1",
+        "editorId": "vaporview.waveformViewer",
+        "webviewSection": "signal",
+        "keybind": "e"
+      },
+      {
+        "command": "slangCustom.project.copyHierarchyPath",
+        "title": "Copy Path",
+        "viewItems": [],
+        "isSubmenu": true,
+        "icon": {
+          "light": "./resources/light/files.svg",
+          "dark": "./resources/dark/files.svg"
+        },
+        "keybind": "cmd+c"
+      },
+      {
+        "command": "slangCustom.rewrite",
+        "title": "Expand Macros",
+        "shortTitle": "Expand macros",
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ],
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "slangCustom.restartLanguageServer",
+        "title": "Slang Custom: Restart Language Server"
+      },
+      {
+        "command": "slangCustom.showOutput",
+        "title": "Slang Custom: Show Output"
+      },
+      {
+        "command": "slangCustom.updateConfig",
+        "title": "Extdev: update config (package.json and CONFIG.md)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "slangCustom",
+          "title": "Slang Custom",
+          "icon": "$(chip)"
+        }
+      ],
+      "panel": []
+    },
+    "views": {
+      "slangCustom": [
+        {
+          "id": "slangCustom.project",
+          "name": "Hierarchy"
+        },
+        {
+          "id": "slangCustom.project.instancesView",
+          "name": "Modules"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "slangCustom.project",
+        "contents": "[Select Build File](command:slangCustom.project.selectBuildFile)\n[Select Top Level](command:slangCustom.project.selectTopLevel)\n[Configure Slang](command:slangCustom.project.openServerConfig)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "slangCustom.project.clearTopLevel",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.fuzzyFindInstance",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.showBuildFile",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.selectBuildFile",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.toggleParams",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.toggleData",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.toggleHidden",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.refreshCompilation",
+          "group": "navigation",
+          "when": "view == slangCustom.project"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "slangCustom.project.showSourceFile",
+          "group": "inline",
+          "when": "view == slangCustom.project && viewItem == Module"
+        },
+        {
+          "command": "slangCustom.project.showInWaveform",
+          "group": "inline",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.showInEditorFromNetlist",
+          "group": "inline",
+          "when": "view == waveformViewerNetlistView"
+        },
+        {
+          "command": "slangCustom.project.copyHierarchyPath",
+          "group": "submenu@4",
+          "when": "view == slangCustom.project"
+        },
+        {
+          "command": "slangCustom.project.instancesView.copyHierarchyPath",
+          "group": "submenu@5",
+          "when": "view == slangCustom.project.instancesView && viewItem == Instance"
+        },
+        {
+          "command": "slangCustom.project.instancesView.showInWaveform",
+          "group": "inline",
+          "when": "view == slangCustom.project.instancesView && viewItem == Instance"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "slangCustom.project.setTopLevel",
+          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
+          "group": "navigation"
+        },
+        {
+          "command": "slangCustom.rewrite",
+          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
+          "group": "navigation"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "slangCustom.project.showInEditorFromVaporview",
+          "group": "2_variables@2.1",
+          "when": "activeCustomEditorId == vaporview.waveformViewer && webviewSection == signal"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "key": "ctrl+f",
+        "command": "slangCustom.project.fuzzyFindInstance",
+        "when": "sideBarFocus && activeViewlet == workbench.view.extension.slangCustom && !inputFocus",
+        "mac": "cmd+f"
+      },
+      {
+        "key": "w",
+        "command": "slangCustom.project.showInWaveform",
+        "when": "focusedView == slangCustom.project && !inputFocus"
+      },
+      {
+        "key": "e",
+        "command": "slangCustom.project.showInEditorFromNetlist",
+        "when": "focusedView == waveformViewerNetlistView && !inputFocus"
+      },
+      {
+        "key": "e",
+        "command": "slangCustom.project.showInEditorFromVaporview",
+        "when": "activeCustomEditorId == vaporview.waveformViewer && !inputFocus"
+      },
+      {
+        "key": "ctrl+c",
+        "command": "slangCustom.project.copyHierarchyPath",
+        "when": "focusedView == slangCustom.project && !inputFocus",
+        "mac": "cmd+c"
+      },
+      {
+        "key": "ctrl+c",
+        "command": "slangCustom.project.instancesView.copyHierarchyPath",
+        "when": "focusedView == slangCustom.project.instancesView && !inputFocus",
+        "mac": "cmd+c"
+      },
+      {
+        "key": "w",
+        "command": "slangCustom.project.instancesView.showInWaveform",
+        "when": "focusedView == slangCustom.project.instancesView && !inputFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "clean": "rimraf out dist .vscode-test",
+    "clean:light": "rimraf out dist .vscode-test/extensions .vscode-test/user-data",
+    "package": "pnpm vsce package --no-dependencies",
+    "copy-server-binary": "bash scripts/copy-server-binary.sh",
+    "package:linux-x64": "pnpm vsce package --no-dependencies --target linux-x64 -o slang-server-extended-linux-x64.vsix",
+    "gen-types": "pnpm -F slanglib gen-types",
+    "check-types": "pnpm gen-types && tsc --noEmit",
+    "check-deps": "depcheck --ignore-patterns 'out/node-packages'",
+    "prepublishOnly": "pnpm check-types && pnpm check-deps && pnpm lint && pnpm format && pnpm package -o vscode-slangCustom.vsix",
+    "release:dry-run": "pnpm publish . --dry-run --no-git-checks",
+    "release:latest": "pnpm publish .",
+    "release:insiders": "pnpm publish . --tag=insiders",
+    "release:alpha": "pnpm publish . --tag=alpha --no-git-checks",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --external:vscode --format=cjs --platform=node --outfile=dist/extension.js --main-fields=module,main",
+    "vscode:prepublish": "pnpm esbuild-base --minify",
+    "build": "pnpm esbuild-base --sourcemap",
+    "watch": "pnpm esbuild-base --sourcemap --watch",
+    "build-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "test": "pnpm build-tests && tape out/test/**/*.js",
+    "prerelease:alpha": "ts-node scripts/update-alpha-version.ts",
+    "lint:ts": "eslint src --ext ts --fix",
+    "lint": "pnpm lint:ts",
+    "pretest": "pnpm clean:light && pnpm build-tests && pnpm build && pnpm lint",
+    "syntax": "js-yaml ./languages/sv/systemverilog.tmLanguage.yaml > ./languages/sv/systemverilog.tmLanguage.json",
+    "test:grammar": "textmate-grammar-test -g languages/sv/systemverilog.tmLanguage.json 'tests/grammar/unit/**/*.sv'",
+    "test:grammar:ci": "textmate-grammar-test -c -g languages/sv/systemverilog.tmLanguage.json 'tests/grammar/unit/**/*.sv'",
+    "test:grammar:snap": "textmate-grammar-snap -s source.systemverilog -g languages/sv/systemverilog.tmLanguage.json 'tests/grammar/snap/**/*.sv'",
+    "test:grammar:snap:update": "textmate-grammar-snap -s source.systemverilog -g languages/sv/systemverilog.tmLanguage.json -u 'tests/grammar/snap/**/*.sv'",
+    "test:grammar:all": "pnpm test:grammar && pnpm test:grammar:snap"
+  },
+  "dependencies": {
+    "decompress": "^4.2.1",
+    "js-yaml": "^4.1.0",
+    "semver": "^7.7.3",
+    "string-argv": "^0.3.2",
+    "vscode-languageclient": "^9.0.1",
+    "which": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/decompress": "^4.2.7",
+    "@types/glob": "^8.1.0",
+    "@types/node": "~20.11.30",
+    "@types/semver": "^7.7.1",
+    "@types/sinon": "^21.0.0",
+    "@types/tape": "^5.8.1",
+    "@types/tmp": "^0.2.6",
+    "@types/vscode": "^1.96.2",
+    "@types/which": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.21.0",
+    "@typescript-eslint/parser": "^8.21.0",
+    "@vscode/vsce": "^3.7.1",
+    "compressing": "^2.1.0",
+    "depcheck": "^1.4.7",
+    "esbuild": "^0.25.11",
+    "eslint": "^9.18.0",
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "glob": "^11.1.0",
+    "globals": "^17.1.0",
+    "jiti": "^2.6.1",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "rimraf": "^6.1.2",
+    "sinon": "^21.0.1",
+    "tape": "^5.9.0",
+    "textmate-grammar-test": "^0.6.0",
+    "tmp-promise": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch@<3.1.4": "3.1.4",
+      "minimatch@>=5.0.0 <5.1.8": "5.1.8",
+      "minimatch@>=7.0.0 <7.4.8": "7.4.8",
+      "minimatch@>=9.0.0 <9.0.7": "9.0.7",
+      "tar-fs@>=2.0.0 <2.1.4": "2.1.4",
+      "jws@<3.2.3": "3.2.3",
+      "underscore@<=1.13.7": "1.13.8",
+      "flatted@<=3.4.1": "3.4.2",
+      "undici@>=7.0.0 <7.24.0": "7.24.0",
+      "js-yaml@<3.14.2": "3.14.2",
+      "js-yaml@>=4.0.0 <4.1.1": "4.1.1",
+      "markdown-it@>=13.0.0 <14.1.1": "14.1.1",
+      "ajv@<6.14.0": "6.14.0",
+      "ajv@>=7.0.0-alpha.0 <8.18.0": "8.18.0",
+      "picomatch@<2.3.2": "2.3.2",
+      "lodash@>=4.0.0 <=4.17.22": "4.17.23",
+      "qs@>=6.7.0 <=6.14.1": "6.14.2",
+      "yaml@>=1.0.0 <1.10.3": "1.10.3",
+      "diff@>=4.0.0 <4.0.4": "4.0.4",
+      "brace-expansion@<1.1.13": "1.1.13",
+      "brace-expansion@>=2.0.0 <2.0.3": "2.0.3"
+    }
+  }
+}
