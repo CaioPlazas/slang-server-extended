@@ -1,0 +1,4 @@
+{
+  "flags": "--timescale=1ns/1ps -I uvm/src uvm/src/uvm_pkg.sv -I rtl -I tb -I tb/defines -I tb/agents -I tb/agents/apb_mstr_agent -I tb/env -I tb/env/apb_mstr_env -I tb/sequence_lib -I tb/sequence_lib/apb_mstr_sequence_lib -I tb/test_lib -I tb/test_lib/apb_mstr_test_lib -I tb/tb_top rtl/apb_v3_sram.v tb/defines/apb_global_pkg.sv tb/tb_top/apb_interface.sv tb/agents/apb_mstr_agent/apb_agent_pkg.sv tb/env/apb_mstr_env/apb_env_pkg.sv tb/sequence_lib/apb_mstr_sequence_lib/apb_seq_lib_pkg.sv tb/test_lib/apb_mstr_test_lib/apb_test_pkg.sv tb/tb_top/tb_top.sv",
+  "experimental": { "uvmVerificationLinting": true }
+}

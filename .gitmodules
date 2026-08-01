@@ -1,0 +1,10 @@
+[submodule "external/slang"]
+	path = external/slang
+	url = https://github.com/CaioPlazas/slang.git
+	branch = uvm-verification-refs-260726
+[submodule "external/reflect-cpp"]
+	path = external/reflect-cpp
+	url = https://github.com/getml/reflect-cpp.git
+[submodule "external/ctre"]
+	path = external/ctre
+	url = https://github.com/hanickadot/compile-time-regular-expressions.git
