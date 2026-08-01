@@ -1,0 +1,139 @@
+[
+  [
+    {
+      "range": {
+        "start": {
+          "line": 22,
+          "character": 8
+        },
+        "end": {
+          "line": 22,
+          "character": 8
+        }
+      },
+      "severity": "Warning",
+      "code": "newline-eof",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#newline-eof"
+      },
+      "message": "no newline at end of file"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 12,
+          "character": 21
+        },
+        "end": {
+          "line": 12,
+          "character": 21
+        }
+      },
+      "severity": "Error",
+      "code": "undefined-param-override",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#undefined-param-override"
+      },
+      "message": "parameter 'p1' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 12,
+          "character": 32
+        },
+        "end": {
+          "line": 12,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "message": "port 'port1' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 14,
+          "character": 21
+        },
+        "end": {
+          "line": 14,
+          "character": 21
+        }
+      },
+      "severity": "Error",
+      "code": "undefined-param-override",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#undefined-param-override"
+      },
+      "message": "parameter 'p2' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 14,
+          "character": 32
+        },
+        "end": {
+          "line": 14,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "message": "port 'port2' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 18,
+          "character": 21
+        },
+        "end": {
+          "line": 18,
+          "character": 21
+        }
+      },
+      "severity": "Error",
+      "code": "undefined-param-override",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#undefined-param-override"
+      },
+      "message": "parameter 'p3' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 18,
+          "character": 32
+        },
+        "end": {
+          "line": 18,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "message": "port 'port3' does not exist in 'x'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 26
+        },
+        "end": {
+          "line": 2,
+          "character": 27
+        }
+      },
+      "severity": "Warning",
+      "code": "unused-parameter",
+      "codeDescription": {
+        "href": "https://sv-lang.com/warning-ref.html#unused-parameter"
+      },
+      "message": "unused parameter 'p'",
+      "tags": [
+        "Unnecessary"
+      ]
+    }
+  ]
+]
