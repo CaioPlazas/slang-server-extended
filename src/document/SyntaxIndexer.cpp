@@ -1,0 +1,289 @@
+//------------------------------------------------------------------------------
+// SyntaxIndexer.cpp
+// Implementation of syntax visitor for collecting macro usages
+//
+// SPDX-FileCopyrightText: Hudson River Trading
+// SPDX-License-Identifier: MIT
+//------------------------------------------------------------------------------
+
+#include "document/SyntaxIndexer.h"
+
+#include "util/Logging.h"
+
+#include "slang/parsing/Token.h"
+#include "slang/parsing/TokenKind.h"
+#include "slang/syntax/AllSyntax.h"
+#include "slang/syntax/SyntaxFacts.h"
+#include "slang/syntax/SyntaxKind.h"
+#include "slang/syntax/SyntaxNode.h"
+#include "slang/syntax/SyntaxTree.h"
+#include "slang/text/SourceLocation.h"
+#include "slang/util/SmallMap.h"
+#include "slang/util/Util.h"
+
+namespace server {
+using namespace slang;
+
+std::string SyntaxIndexer::MacroExpansionTokens::getText() const {
+    std::string result;
+    for (const auto* tok : tokens) {
+        for (const auto& t : tok->trivia())
+            result += t.getRawText();
+        result += tok->rawText();
+    }
+    return result;
+}
+
+SyntaxIndexer::SyntaxIndexer(const slang::syntax::SyntaxTree& tree, slang::BufferID focusBuffer) {
+    SLANG_ASSERT(tree.getSourceBufferIds().size() >= 1);
+    // Index tokens for the requested buffer. For a normal document that's the tree's own main
+    // buffer; for an `include` fragment analyzed in its owner's tree, focusBuffer is the
+    // fragment's included buffer so its tokens (not the owner's) get collected.
+    m_buffer = focusBuffer ? focusBuffer : tree.getSourceBufferIds()[0];
+    m_sourceManager = &tree.sourceManager();
+    visit(tree.root());
+    flushMacroExpansion();
+}
+
+void SyntaxIndexer::visit(const slang::syntax::SyntaxNode& node) {
+    switch (node.kind) {
+        case syntax::SyntaxKind::MacroUsage: {
+            if (node.getFirstToken().location().buffer() == m_buffer) {
+                collectedHints.emplace(
+                    static_cast<uint32_t>(node.getFirstToken().location().offset()), &node);
+            }
+            break;
+        }
+        case syntax::SyntaxKind::InvocationExpression:
+        case syntax::SyntaxKind::HierarchyInstantiation:
+        case syntax::SyntaxKind::ClassName:
+            collectedHints.emplace(static_cast<uint32_t>(node.getFirstToken().location().offset()),
+                                   &node);
+            break;
+        default:
+            break;
+    }
+
+    for (uint32_t i = 0; i < node.getChildCount(); i++) {
+        auto child = node.childNode(i);
+        if (child)
+            visit(*child);
+        else {
+            auto token = const_cast<slang::syntax::SyntaxNode&>(node).childTokenPtr(i);
+            if (!token)
+                continue;
+            processTrivia(token->trivia(), node);
+
+            // Track macro expansion tokens
+            if (m_currentMacroUsage) {
+                if (token->location().buffer() != m_buffer) {
+                    m_currentExpansionTokens.push_back(token);
+                    continue;
+                }
+                else {
+                    flushMacroExpansion();
+                }
+            }
+
+            if (token->location().buffer() == m_buffer &&
+                token->kind != parsing::TokenKind::Placeholder) {
+                if (collected.size() > 0) {
+                    /// TODO: investigate overlaps
+                    // SLANG_ASSERT(collected.back()->range().end() <= token->range().start());
+                    if (!(collected.back()->range().end() <= token->range().start())) {
+                        ERROR("Token '{}': {} overlaps with previous token '{}' : {}",
+                              token->rawText(), toString(token->kind), collected.back()->rawText(),
+                              toString(collected.back()->kind));
+                    }
+                }
+                collected.push_back(token);
+
+                tokenToParent[token] = &node;
+            }
+        }
+    }
+}
+
+void SyntaxIndexer::flushMacroExpansion() {
+    if (m_currentMacroUsage && !m_currentExpansionTokens.empty()) {
+        macroExpansions[m_currentMacroUsage].tokens = std::move(m_currentExpansionTokens);
+        m_currentExpansionTokens = {};
+    }
+    m_currentMacroUsage = nullptr;
+}
+
+void SyntaxIndexer::processTrivia(std::span<const slang::parsing::Trivia> triviaList,
+                                  const slang::syntax::SyntaxNode& parent) {
+    for (const auto& trivia : triviaList) {
+        if (trivia.kind == parsing::TriviaKind::Directive) {
+            visit(*trivia.syntax());
+            // Macro args need to lookup in a scope; we could add a new map, but it's better
+            // to keep the same process as normal nodes
+            trivia.syntax()->parent = const_cast<slang::syntax::SyntaxNode*>(&parent);
+
+            // Track macro usage for expansion text collection
+            if (trivia.syntax()->kind == syntax::SyntaxKind::MacroUsage &&
+                trivia.syntax()->as<syntax::MacroUsageSyntax>().directive.location().buffer() ==
+                    m_buffer) {
+                flushMacroExpansion();
+                m_currentMacroUsage = trivia.syntax();
+            }
+        }
+
+        // Descend into SkippedTokens to find conditional directives
+        // that were displaced by parse errors.
+        if (trivia.kind == parsing::TriviaKind::SkippedTokens) {
+            for (const auto& skippedTok : trivia.getSkippedTokens()) {
+                processTrivia(skippedTok.trivia(), parent);
+            }
+            continue;
+        }
+
+        // Check for conditional branch triva, which will contain disabled tokens
+        auto* syntax = trivia.syntax();
+        if (!syntax)
+            continue;
+
+        // Check that we're in the buffer (not an included buffer or expanded buffer)
+        if (syntax->getFirstToken().location().buffer() != m_buffer)
+            continue;
+
+        auto addDisabledRange = [&](const syntax::TokenList& tokens) {
+            if (tokens.empty())
+                return;
+
+            disabledRegions.push_back({tokens.front().location(), tokens.back().range().end()});
+        };
+
+        // Conditional Branch Directives (ie: `ifdef)
+        if (syntax::ConditionalBranchDirectiveSyntax::isKind(syntax->kind)) {
+            const auto& branch = syntax->as<syntax::ConditionalBranchDirectiveSyntax>();
+            addDisabledRange(branch.disabledTokens);
+        }
+
+        // Unconditional Branch Directives (ie: `else)
+        // `endif should no longer contain any disabled tokens after the slang change
+        else if (syntax::UnconditionalBranchDirectiveSyntax::isKind(syntax->kind)) {
+            const auto& branch = syntax->as<syntax::UnconditionalBranchDirectiveSyntax>();
+            addDisabledRange(branch.disabledTokens);
+        }
+    }
+}
+
+int SyntaxIndexer::tokenIndexBefore(slang::SourceLocation loc) const {
+    if (loc.buffer() != m_buffer) {
+        return -1;
+    }
+
+    if (collected.size() == 0) {
+        return -1;
+    }
+
+    /// collected[low].location <= loc < collected[high].location
+    // check invariants at initial state
+    if (loc < collected[0]->location()) {
+        return -1;
+    }
+    // don't need to check high, since we only return low
+
+    size_t low = 0;
+    size_t high = collected.size();
+    while (low + 1 < high) {
+        size_t mid = low + (high - low) / 2;
+        auto node = collected[mid];
+        auto range = node->range();
+        if (range.start() <= loc) {
+            low = mid;
+        }
+        else {
+            high = mid;
+        }
+    }
+    return static_cast<int>(low);
+}
+
+bool SyntaxIndexer::editorContains(slang::SourceRange range, slang::SourceLocation loc) const {
+    // TODO: change this to <= since curors are typically between characters (on vscode)
+    return range.start() <= loc && loc < range.end();
+}
+
+bool SyntaxIndexer::isIdToken(const parsing::TokenKind kind) const {
+    return kind == parsing::TokenKind::Identifier || kind == parsing::TokenKind::SystemIdentifier ||
+           kind == parsing::TokenKind::Directive || kind == parsing::TokenKind::MacroUsage;
+}
+
+const slang::parsing::Token* SyntaxIndexer::getWordTokenAt(slang::SourceLocation loc) const {
+    auto atInd = tokenIndexBefore(loc);
+    if (atInd == -1) {
+        return nullptr;
+    }
+    if (isIdToken(collected[atInd]->kind) && editorContains(collected[atInd]->range(), loc)) {
+        return collected[atInd];
+    }
+    if (atInd == 0) {
+        return nullptr;
+    }
+    // SomePkg::var
+    //        ^^ may be the first loc on this token, but want to match to SomePkg
+    if (isIdToken(collected[atInd - 1]->kind) &&
+        editorContains(collected[atInd - 1]->range(), loc)) {
+        return collected[atInd - 1];
+    }
+    return nullptr;
+}
+
+const slang::parsing::Token* SyntaxIndexer::getTokenAt(slang::SourceLocation loc) const {
+    auto atInd = tokenIndexBefore(loc);
+    if (atInd == -1) {
+        return nullptr;
+    }
+    auto tok = collected[atInd];
+    if (tok->range().contains(loc)) {
+        return tok;
+    }
+    return nullptr;
+}
+
+const syntax::SyntaxNode* SyntaxIndexer::getTokenParent(const parsing::Token* tok) const {
+    auto it = tokenToParent.find(tok);
+    if (it == tokenToParent.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
+
+const syntax::SyntaxNode* SyntaxIndexer::getSyntaxAt(slang::SourceLocation loc) const {
+    auto beforeIndex = tokenIndexBefore(loc);
+
+    // Before first token
+    if (beforeIndex == -1) {
+        return nullptr;
+    }
+
+    auto beforeToken = collected[beforeIndex];
+
+    // Inside a token
+    if (loc < beforeToken->range().end()) {
+        return getTokenParent(beforeToken);
+    }
+
+    // After last token
+    if (beforeIndex + 1 >= static_cast<int>(collected.size())) {
+        return nullptr;
+    }
+
+    // Find first common ancestor
+    auto beforeSyntax = getTokenParent(beforeToken);
+    SmallSet<const syntax::SyntaxNode*, 16> beforeParents;
+    for (auto ptr = beforeSyntax; ptr != nullptr; ptr = ptr->parent) {
+        beforeParents.insert(ptr);
+    }
+    auto afterSyntax = getTokenParent(collected[beforeIndex + 1]);
+    for (auto ptr = afterSyntax; ptr != nullptr; ptr = ptr->parent) {
+        if (beforeParents.contains(ptr)) {
+            return ptr;
+        }
+    }
+    return nullptr;
+}
+} // namespace server

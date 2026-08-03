@@ -1,0 +1,276 @@
+//------------------------------------------------------------------------------
+// ServerDriver.h
+// Server driver class for processing syntax trees with indexing support
+//
+// SPDX-FileCopyrightText: Hudson River Trading
+// SPDX-License-Identifier: MIT
+//------------------------------------------------------------------------------
+#pragma once
+
+#include "Config.h"
+#include "ServerDiagClient.h"
+#include "SlangLspClient.h"
+#include "ast/ServerCompilation.h"
+#include "codeactions/CodeActionDispatch.h"
+#include "completions/CompletionDispatch.h"
+#include "document/DefinitionInfo.h"
+#include "lsp/URI.h"
+#include <filesystem>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+#include "slang/driver/Driver.h"
+#include "slang/syntax/SyntaxTree.h"
+#include "slang/text/SourceManager.h"
+#include "slang/util/Bag.h"
+#include "slang/util/FlatMap.h"
+namespace server {
+using namespace slang;
+enum FileUpdateType {
+    OPEN,
+    CHANGE,
+    SAVE,
+};
+
+/// @brief Manages the document handles, which include open and referenced symbols/documents.
+/// Syntax trees and options are used to build one, after flags are processed via a slang driver.
+/// Compilations can be created either from a document (using the index to populate) or the existing
+/// options passed in a filelist
+class ServerDriver {
+public:
+    static std::unique_ptr<ServerDriver> create(Indexer& indexer, SlangLspClient& client,
+                                                const Config& config,
+                                                std::vector<std::string> buildfiles = {},
+                                                const ServerDriver* oldDriver = nullptr);
+    /// Mapping of URI to SlangDoc, which may hold a shallow analysis of the document
+    std::unordered_map<URI, std::shared_ptr<SlangDoc>> docs;
+
+    // Owned by the Slang Driver
+    SourceManager& sm;
+    DiagnosticEngine& diagEngine;
+    SlangLspClient& client;
+
+    driver::Driver driver;
+
+    /// Options parsed from the flags on creation
+    Bag options;
+
+    // References m_client, receives diags from the engine
+    std::shared_ptr<ServerDiagClient> diagClient;
+    // The current compilation, if one has been created
+    std::unique_ptr<ServerCompilation> comp;
+
+    CompletionDispatch completions;
+    CodeActionDispatch codeActions;
+
+    /// @brief Destructor
+    ~ServerDriver() {
+        // Clear diags from this driver
+        diagClient->clearAndPush();
+    };
+
+    /// @brief Gets a document by URI, creating it if it doesn't exist
+    void openDocument(const URI& uri, const std::string_view text);
+
+    /// @brief Close a document and remove it from the open docs set
+    void closeDocument(const URI& uri);
+
+    /// @brief Reload a document from disk, used when external tools modify open files
+    void reloadDocument(const URI& uri);
+
+    void onDocDidChange(const lsp::DidChangeTextDocumentParams& params);
+
+    /// @brief Checks if a document is open
+    bool isDocumentOpen(const URI& uri);
+
+    /// @brief Handle workspace file change notifications from the file watcher
+    /// Reloads all changed buffers first, then updates open documents
+    void onWorkspaceDidChangeWatchedFiles(const lsp::DidChangeWatchedFilesParams& params);
+
+    void updateDoc(SlangDoc& doc, FileUpdateType type);
+
+    std::shared_ptr<SlangDoc> getDocument(const URI& uri);
+
+    /// @brief The current driver-level macro pool for the `singleUnitMacros` experimental
+    /// feature -- the union of every `` `define`` found across m_buildOrder, last-wins in
+    /// flist order. Empty when the toggle is off.
+    /// Appends the pool to `out`, skipping macros contributed by `ownUri` itself. A file's own
+    /// `` `define``s execute during its own parse, so predefining them would (for an
+    /// include-guarded file) make its `` `ifndef`` guard false and collapse the whole body into an
+    /// inactive region.
+    void appendMacroPool(const URI& ownUri,
+                         std::vector<const syntax::DefineDirectiveSyntax*>& out) const;
+
+    /// @brief Generation counter for getMacroPool(), bumped only when its content changes.
+    /// Callers (SlangDoc::getSyntaxTree()) compare this against a value they recorded at their
+    /// last parse to decide whether they need to reparse against a newer pool.
+    uint64_t getMacroPoolGen() const { return m_macroPoolGen; }
+
+    /// @brief Finds documents already known to `\`include` the given path, e.g. because it's a
+    /// `.vh`/`.svh` fragment spliced into a module body rather than a standalone compilation
+    /// unit. There can be more than one if the same fragment is shared across modules.
+    /// @return The owning documents, or empty if no currently-parsed document includes this path
+    std::vector<std::shared_ptr<SlangDoc>> findIncludeOwners(const URI& uri);
+
+    /// @brief The inverse of findIncludeOwners: given a document that was just opened/reparsed,
+    /// find any other known document that it `\`include`s and is currently an orphaned fragment
+    /// (parsed standalone because no owner was known yet, e.g. because the fragment was opened
+    /// in the editor before its owner). Retroactively binds them and refreshes diagnostics for
+    /// any that are open.
+    /// @param newOwner The document to scan for newly-discoverable fragments it includes
+    void adoptOrphanFragments(const std::shared_ptr<SlangDoc>& newOwner);
+
+    std::vector<std::shared_ptr<SlangDoc>> getDependentDocs(std::shared_ptr<SyntaxTree> tree);
+
+    std::vector<std::string> getModulesInFile(const std::string& path);
+
+    /// @brief Gets definition information for a symbol at an LSP position, used for
+    /// hovers and definitions
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @return Optional definition information
+    std::optional<DefinitionInfo> getDefinitionInfoAt(const URI& uri,
+                                                      const lsp::Position& position);
+
+    /// @brief Gets LSP definition links for a position in a document
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @return Vector of location links to definitions
+    std::vector<lsp::LocationLink> getDocDefinition(const URI& uri, const lsp::Position& position);
+
+    /// @brief Gets hover information for a symbol at an LSP position
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @return Optional hover information, or nullopt if none available
+    std::optional<lsp::Hover> getDocHover(const URI& uri, const lsp::Position& position);
+
+    /// @brief Gets highlight positions for a symbol and all its references in a document
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @return Optional highlight information, or nullopt if no symbol found
+    std::optional<std::vector<lsp::DocumentHighlight>> getDocDocumentHighlight(
+        const URI& uri, const lsp::Position& position);
+
+    /// @brief Gets all references to a symbol in a document
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @param includeDeclaration Whether to include the declaration in results
+    /// @return Optional vector of locations, or nullopt if no symbol found
+    std::optional<std::vector<lsp::Location>> getDocReferences(const URI& uri,
+                                                               const lsp::Position& position,
+                                                               bool includeDeclaration);
+
+    /// @brief Renames a symbol in a document
+    /// @param uri The URI of the document
+    /// @param position The LSP position to query
+    /// @param newName The new name for the symbol
+    /// @return Optional workspace edit with all rename changes, or nullopt if no symbol found
+    std::optional<lsp::WorkspaceEdit> getDocRename(const URI& uri, const lsp::Position& position,
+                                                   std::string_view newName);
+
+    /// @brief Creates a compilation from the given URI and top module name.
+    /// @return True if the compilation was created successfully
+    bool createCompilation(std::shared_ptr<SlangDoc> doc, std::string_view top);
+
+    /// @brief Creates a compilation from the given syntax trees, typically when the .f already
+    /// specifies the top level(s). Does not use the index.
+    /// @return True if the compilation was created successfully
+    bool createCompilation();
+
+    /// @brief Constructs a new ServerDriver instance by creating and configuring a driver
+    /// internally
+    /// @param indexer Reference to an indexer for symbol/macro indexing
+    /// @param client Reference to the slang client for error reporting
+    /// @param config Reference to the configuration object
+    /// @param buildfiles List of build files to process
+    ServerDriver(Indexer& indexer, SlangLspClient& client, const Config& config,
+                 std::vector<std::string> buildfiles);
+
+    /// Map from macro name to the config/build file that defined it
+    flat_hash_map<std::string, std::filesystem::path> m_defineSources;
+
+    /// When true (default in `SLANG_DEBUG` builds), `getDocHover` returns a synthetic
+    /// `**Token:** ...` hover for tokens with no resolved definition. Tests turn this off so
+    /// goldens don't diverge between Debug and Release builds.
+    static bool s_debugHoversEnabled;
+
+private:
+    /// Reference to the indexer for module/macro indexing
+    Indexer& m_indexer;
+
+    /// Reference to the config object
+    const Config& m_config;
+
+    /// Parse config flags and build files, load sources, create documents
+    void parseAndLoadSources(const std::vector<std::string>& buildfiles);
+
+    /// Set of URIs for documents that are explicitly opened by the client
+    flat_hash_set<URI> m_openDocs;
+
+    /// Helper to add member references to the references vector
+    void addMemberReferences(std::vector<lsp::Location>& references,
+                             const ast::Symbol& parentSymbol, const ast::Symbol& targetSymbol,
+                             bool isTypeMember = false);
+
+    /// @brief Resolves `uri` to a document. If findIncludeOwners(uri) finds owner(s) and the
+    /// standalone parse is genuinely empty/garbage (not a "dual-purpose" file -- see
+    /// adoptOrphanFragments), binds it to those owners instead of returning a standalone parse.
+    /// @param text Live editor text (openDocument), or nullopt for a disk-backed lookup (getDocument)
+    std::shared_ptr<SlangDoc> resolveDocument(const URI& uri, std::optional<std::string_view> text);
+
+    /// @brief True if `uri`'s `\`include` site, within `owner`'s syntax tree, is nested inside a
+    /// package/module/interface/program/class/checker rather than sitting at compilation-unit
+    /// scope. Used to decide whether a class-only `.svh` (see StandaloneParse::NeedsOwnerContext
+    /// in ServerDriver.cpp) should be bound to `owner`.
+    bool isNestedInDesignUnit(const URI& uri, const std::shared_ptr<SlangDoc>& owner);
+
+    void publishInactiveRegions(SlangDoc& doc);
+
+    /// State for the `singleUnitMacros` experimental feature: a driver-level pool of every
+    /// `` `define`` found anywhere in the build, fed into every doc's parse so macros resolve
+    /// across files that don't `` `include`` each other directly.
+    /// Build order (flist order) of docs, used for deterministic last-wins resolution of the pool.
+    std::vector<URI> m_buildOrder;
+
+    /// One build file's contribution to the pool, parsed with NO inherited macros so its own
+    /// `` `ifndef`` guards evaluate normally. Harvesting from the docs' own trees instead would
+    /// feed the pool back into itself: a guarded header whose guard is already pooled skips its
+    /// entire body, so its macros vanish from the next harvest and reappear on the one after.
+    struct HarvestedFile {
+        /// Owns (via its BumpAllocator) the DefineDirectiveSyntax nodes in `macros`.
+        std::shared_ptr<syntax::SyntaxTree> tree;
+        /// Keeps the SOURCE TEXT alive. The tree owns its nodes but NOT the text their tokens'
+        /// string_views point into -- that lives in SourceManager::FileData, which
+        /// replaceBuffer() frees on edit. Must be captured when the tree is fresh.
+        std::vector<std::shared_ptr<void>> retainedBuffers;
+        std::vector<const syntax::DefineDirectiveSyntax*> macros;
+        /// Every file this harvest read, i.e. the build file itself plus everything it
+        /// `` `include``d. Lets a save of an included macro header (uvm_macros.svh) re-harvest the
+        /// build files that pull it in -- otherwise editing it would never refresh the pool.
+        std::vector<URI> sourceFiles;
+    };
+    /// Per-file harvests, keyed by URI. std::unordered_map (not flat_hash_map) because
+    /// m_macroPool below holds pointers to these keys, and only std::unordered_map guarantees
+    /// element pointers stay valid across rehash.
+    std::unordered_map<URI, HarvestedFile> m_harvested;
+
+    /// The flattened pool: (contributing file, macro), last-wins in m_buildOrder order.
+    std::vector<std::pair<const URI*, const syntax::DefineDirectiveSyntax*>> m_macroPool;
+    /// Bumped only when m_macroPool's content actually changes (see m_macroPoolHash), so docs
+    /// can cheaply detect "does my cached tree need to reparse against a new pool".
+    uint64_t m_macroPoolGen = 0;
+    /// Hash of the current pool's (name, raw source text) pairs, used to detect real content
+    /// changes across rebuilds (as opposed to a rebuild that reproduces the same macro set).
+    size_t m_macroPoolHash = 0;
+    /// Parses `uri` with no inherited macros and records its `` `define``s in m_harvested,
+    /// replacing any previous entry for that file. `tree` may be supplied when a guard-free tree
+    /// already exists (at startup the pool is still empty, so the build's own trees qualify and
+    /// no extra parse is needed); otherwise the file is re-read and parsed fresh.
+    void harvestFile(const URI& uri, std::shared_ptr<syntax::SyntaxTree> tree = nullptr);
+
+    /// Re-flattens m_macroPool from m_harvested in m_buildOrder order and bumps m_macroPoolGen
+    /// if the content actually changed. No-op unless the singleUnitMacros toggle is on.
+    void rebuildMacroPool();
+};
+} // namespace server
