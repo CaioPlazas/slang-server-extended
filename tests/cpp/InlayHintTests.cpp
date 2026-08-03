@@ -1,0 +1,425 @@
+// SPDX-FileCopyrightText: Hudson River Trading
+// SPDX-License-Identifier: MIT
+
+#include "utils/GoldenTest.h"
+#include "utils/InlayHintScanner.h"
+#include "utils/ServerHarness.h"
+
+using namespace slang;
+
+TEST_CASE("InlayHintsAll") {
+    /// Test inlay hints on the comprehensive all.sv test file
+    ServerHarness server("");
+    auto hdl = server.openFile("all.sv");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsFunction") {
+    /// Test inlay hints for function call arguments
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_function.sv", R"(
+module test;
+    function int add(int a, int b);
+        return a + b;
+    endfunction
+
+    initial begin
+        int x = add(5, 10);
+    end
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsFunctionMacroArg") {
+    /// Test function argument hints use the original source location for macro arguments
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_function_macro_arg.sv", R"(
+`define ID(x) x
+
+module test;
+    function int add(int a, int b);
+        return a + b;
+    endfunction
+
+    initial begin
+        int x = add(`ID(5), 10);
+    end
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsModuleOrdered") {
+    /// Test inlay hints for module instantiation with ordered ports
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_module_ordered.sv", R"(
+module adder(
+    input logic clk,
+    input logic [7:0] a,
+    input logic [7:0] b,
+    output logic [8:0] sum
+);
+endmodule
+
+module top;
+    logic clk, a, b, sum;
+    adder u_adder(clk, a, b, sum);
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsModuleNamed") {
+    /// Test inlay hints for module instantiation with named ports
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_module_named.sv", R"(
+module counter(
+    input logic clk,
+    input logic rst,
+    output logic [7:0] count
+);
+endmodule
+
+module top;
+    logic clk, rst;
+    logic [7:0] cnt;
+    counter u_cnt(.clk(clk), .rst(rst), .count(cnt));
+
+    counter x_cnt(
+        .clk  (clk),
+        .rst  (rst),
+        .count(cnt)
+    );
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsWildcard") {
+    /// Test inlay hints for wildcard port connections
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_wildcard.sv", R"(
+module receiver(
+    input logic clk,
+    input logic [7:0] data
+);
+endmodule
+
+module top;
+    logic clk;
+    logic [7:0] data;
+    receiver u_rx(.*);
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsParameters") {
+    /// Test inlay hints for parameter assignments
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_params.sv", R"(
+module fifo #(
+    parameter int DEPTH = 16,
+    parameter int WIDTH = 8
+)(
+    input logic clk
+);
+endmodule
+
+module top;
+    logic clk;
+    fifo #(32, 16) u_fifo(clk);
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsWildcardExpansion") {
+    /// Test applying text edits from wildcard expansion
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_wildcard_expand.sv", R"(
+module receiver(
+    input logic clk,
+    input logic [7:0] data
+);
+endmodule
+
+module top;
+    logic clk;
+    logic [7:0] data;
+    receiver u_rx(.*);
+endmodule
+)");
+
+    auto hints = hdl.getAllInlayHints();
+
+    // Collect all text edits from hints
+    std::vector<lsp::TextEdit> edits;
+    for (const auto& hint : hints) {
+        if (hint.textEdits) {
+            for (const auto& edit : *hint.textEdits) {
+                edits.push_back(edit);
+            }
+        }
+    }
+
+    // Apply edits and check result
+    auto result = hdl.withTextEdits(edits);
+
+    GoldenTest test;
+    test.record(result);
+}
+
+TEST_CASE("InlayHintsWildcardMultiple") {
+    /// Test applying text edits from multiple wildcard expansions
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_wildcard_multi.sv", R"(
+module dut(
+    input logic clk,
+    input logic rst,
+    input logic [7:0] data_in,
+    output logic [7:0] data_out
+);
+endmodule
+
+module top;
+    logic clk, rst;
+    logic [7:0] data_in, data_out;
+
+    dut u_dut1(.*);
+
+    dut u_dut2(.*);
+
+    dut u_dut3(
+        .*
+    );
+endmodule
+)");
+
+    auto hints = hdl.getAllInlayHints();
+
+    // Collect all text edits from hints
+    std::vector<lsp::TextEdit> edits;
+    for (const auto& hint : hints) {
+        if (hint.textEdits) {
+            for (const auto& edit : *hint.textEdits) {
+                edits.push_back(edit);
+            }
+        }
+    }
+
+    // Apply edits and check result
+    auto result = hdl.withTextEdits(edits);
+
+    GoldenTest test;
+    test.record(result);
+}
+
+TEST_CASE("InlayHintsInstanceArray") {
+    /// Test inlay hints for module instance arrays with ordered ports
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_instance_array.sv", R"(
+module adder(
+    input logic clk,
+    input logic [7:0] a,
+    input logic [7:0] b,
+    output logic [8:0] sum
+);
+endmodule
+
+module top;
+    logic clk;
+    logic [7:0] a[0:3], b[0:3];
+    logic [8:0] sum[0:3];
+    adder u_adder[0:3](clk, a, b, sum);
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsClassTypedefOrdered") {
+    /// Test inlay hints for typedef'd class with parameter overrides and ordered constructor
+    /// parameters
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_class_typedef.sv", R"(
+class packet #(int WIDTH = 8, int MAX_SIZE = 512);
+    function new(int id, int size, bit[WIDTH-1:0] data);
+    endfunction
+endclass
+
+typedef packet #(16, 1024) my_packet_t;
+
+module top;
+    initial begin
+        my_packet_t pkt = new(42, 256, 16'hABCD);
+    end
+endmodule
+)");
+    // TODO: inlay hints and gotos on 'super' and 'new' keywords
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsTooManyArgs") {
+    /// Test inlay hints for function calls and macro calls with too many arguments
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_too_many_args.sv", R"(
+`define MY_MACRO(a, b) (a + b)
+
+module test;
+    function int add(int a, int b);
+        return a + b;
+    endfunction
+
+    initial begin
+        // Function call with too many arguments
+        int x = add(5, 10, 15);
+
+        // Macro call with too many arguments
+        int y = `MY_MACRO(3, 4, 5);
+    end
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsNullPtrEdgeCases") {
+    /// Test inlay hints with various edge cases that could trigger null pointer issues
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_null_ptr_edge_cases.sv", R"(
+module adder #(
+    parameter int WIDTH = 8,
+    parameter int DEPTH = 16
+)(
+    input logic clk,
+    input logic [WIDTH-1:0] a,
+    input logic [WIDTH-1:0] b,
+    output logic [WIDTH:0] sum
+);
+endmodule
+
+module top;
+    logic clk, a, b, sum;
+
+    // Too many parameters - tests bounds checking
+    adder #(8, 16, 32, 64) u_adder1(clk, a, b, sum);
+
+    // Too many ports - tests bounds checking
+    adder u_adder2(clk, a, b, sum, 1'b0, 1'b1);
+
+    // Named ports with potential null syntax
+    adder u_adder3(
+        .clk(clk),
+        .a(a),
+        .b(b),
+        .sum(sum)
+    );
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsMalformedSyntax") {
+    /// Test inlay hints with malformed syntax that has parse errors
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_malformed.sv", R"(
+module broken;
+    // This will have parse errors but shouldn't crash
+    logic clk;
+
+    // Missing module definition
+    undefined_mod inst();
+
+    // Function with missing args
+    function int broken_func();
+        return 0;
+    endfunction
+
+    initial begin
+        // Function call - tests null left expression handling
+        int x = broken_func();
+    end
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsClassParameterEdgeCases") {
+    /// Test inlay hints for classes with edge cases
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_class_edge_cases.sv", R"(
+class packet #(int WIDTH = 8);
+    function new(int id);
+    endfunction
+endclass
+
+// Non-generic class (no parameters)
+class simple_packet;
+    function new(int id);
+    endfunction
+endclass
+
+module top;
+    initial begin
+        // Too many parameters - tests bounds checking
+        packet #(8, 16, 32) pkt1 = new(1);
+
+        // Simple class without parameters - tests null parameters check
+        simple_packet pkt2 = new(2);
+    end
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
+
+TEST_CASE("InlayHintsEmptyPorts") {
+    /// Test inlay hints with modules that have no ports
+    ServerHarness server("");
+    auto hdl = server.openFile("inlay_empty_ports.sv", R"(
+module no_ports;
+    // Module with no ports
+endmodule
+
+module has_ports(input logic clk);
+endmodule
+
+module top;
+    logic clk;
+
+    // Instance with no ports - should handle empty port list
+    no_ports u_empty();
+
+    // Instance with too many connections to a 1-port module
+    has_ports u_ports(clk, clk, clk);
+endmodule
+)");
+
+    InlayHintScanner scanner;
+    scanner.scanDocument(hdl);
+}
