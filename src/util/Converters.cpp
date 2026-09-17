@@ -1,0 +1,129 @@
+//------------------------------------------------------------------------------
+// Converters.cpp
+// Type conversion utilities for LSP server, primarily between slang and LSP types
+//
+// SPDX-FileCopyrightText: Hudson River Trading
+// SPDX-License-Identifier: MIT
+//------------------------------------------------------------------------------
+#include "util/Converters.h"
+
+#include <fmt/format.h>
+
+#include "slang/text/SourceLocation.h"
+
+namespace server {
+
+using namespace slang;
+
+// Runs dfs on the syntax node to find the name token, which will point to the same memory
+std::optional<const parsing::Token> findNameToken(const syntax::SyntaxNode* node,
+                                                  std::string_view name) {
+    // The name and token will occupy the same memory, so match on that
+    for (size_t i = 0; i < node->getChildCount(); i++) {
+        // check if the child is a token
+        auto token = node->childToken(i);
+        if (token) {
+            if (token.valueText().data() == name.data()) {
+                return token;
+            }
+            continue;
+        }
+        // check if the child is a node
+        auto child = node->childNode(i);
+        if (child) {
+            auto token = findNameToken(child, name);
+            if (token)
+                return token;
+        }
+    }
+    return std::nullopt;
+}
+
+lsp::Position toPosition(const SourceLocation& loc, const SourceManager& sourceManager) {
+    auto actualLoc = sourceManager.getFullyExpandedLoc(loc);
+    auto character = sourceManager.getColumnNumber(actualLoc);
+    return lsp::Position{.line = static_cast<lsp::uint>(sourceManager.getRawLineNumber(actualLoc) -
+                                                        1),
+                         .character = static_cast<lsp::uint>(character > 0 ? character - 1 : 0)};
+}
+
+std::optional<SourceLocation> toSourceLocation(BufferID buffer, const lsp::Position& position,
+                                               const SourceManager& sourceManager) {
+    return sourceManager.getSourceLocation(buffer, position.line + 1, position.character + 1);
+}
+
+lsp::Range toRange(const SourceRange& range, const SourceManager& sourceManager) {
+    auto actualRange = sourceManager.getFullyExpandedRange(range);
+    return lsp::Range{.start = toPosition(actualRange.start(), sourceManager),
+                      .end = toPosition(actualRange.end(), sourceManager)};
+}
+
+lsp::Location toOriginalLocation(const SourceRange& range, const SourceManager& sourceManager) {
+    auto origRange = sourceManager.getFullyOriginalRange(range);
+    return lsp::Location{
+        .uri = URI::fromFile(sourceManager.getFullPath(origRange.start().buffer())),
+        .range = toRange(origRange, sourceManager),
+    };
+}
+
+lsp::Range toRange(const SourceLocation& loc, const SourceManager& sourceManager,
+                   const size_t length) {
+
+    auto start = toPosition(loc, sourceManager);
+    lsp::Position end{start};
+    end.character += length;
+    return lsp::Range{.start = start, .end = end};
+}
+
+lsp::Location toLocation(const SourceRange& range, const SourceManager& sourceManager) {
+    auto declRange = sourceManager.getFullyExpandedRange(range);
+
+    return lsp::Location{.uri = URI::fromFile(
+                             sourceManager.getFullPath(declRange.start().buffer())),
+                         .range = toRange(declRange, sourceManager)};
+}
+
+lsp::Location toLocation(const SourceLocation& loc, const SourceManager& sourceManager) {
+    auto actualLoc = sourceManager.getFullyExpandedLoc(loc);
+    return lsp::Location{.uri = URI::fromFile(sourceManager.getFullPath(actualLoc.buffer())),
+                         .range = lsp::Range{.start = toPosition(actualLoc, sourceManager),
+                                             .end = toPosition(actualLoc, sourceManager)}};
+}
+
+lsp::SymbolKind toSymbolKind(const syntax::SyntaxKind& kind) {
+    switch (kind) {
+        case syntax::SyntaxKind::InterfaceDeclaration:
+            return lsp::SymbolKind::Interface;
+        case syntax::SyntaxKind::ModuleDeclaration:
+        case syntax::SyntaxKind::CheckerDeclaration:
+        case syntax::SyntaxKind::ProgramDeclaration:
+            return lsp::SymbolKind::Module;
+        case syntax::SyntaxKind::PackageDeclaration:
+            return lsp::SymbolKind::Package;
+        case syntax::SyntaxKind::ClassDeclaration:
+            return lsp::SymbolKind::Class;
+        case syntax::SyntaxKind::FunctionDeclaration:
+        case syntax::SyntaxKind::TaskDeclaration:
+            return lsp::SymbolKind::Function;
+        default:
+            return lsp::SymbolKind::Null;
+    }
+}
+
+lsp::MarkupContent markdown(std::string& md) {
+    return lsp::MarkupContent{.kind = lsp::MarkupKindOptions::from_name<"markdown">().str(),
+                              .value = md};
+}
+
+std::string subroutineString(ast::SubroutineKind kind) {
+    switch (kind) {
+        case ast::SubroutineKind::Function:
+            return "function";
+        case ast::SubroutineKind::Task:
+            return "task";
+        default:
+            SLANG_UNREACHABLE;
+    }
+}
+
+} // namespace server
