@@ -1,0 +1,131 @@
+[
+  {
+    "instance_completions": [
+      {
+        "label": "clk",
+        "labelDetails": {
+          "detail": " input logic"
+        },
+        "kind": "Interface",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\ninput logic clk\n````"
+        },
+        "filterText": "clk",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 36,
+              "character": 17
+            },
+            "end": {
+              "line": 36,
+              "character": 17
+            }
+          },
+          "newText": "clk"
+        }
+      },
+      {
+        "label": "data_out",
+        "labelDetails": {
+          "detail": " output logic[7:0]"
+        },
+        "kind": "Interface",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\noutput logic [7:0] data_out\n````"
+        },
+        "filterText": "data_out",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 36,
+              "character": 17
+            },
+            "end": {
+              "line": 36,
+              "character": 17
+            }
+          },
+          "newText": "data_out"
+        }
+      },
+      {
+        "label": "internal_state",
+        "labelDetails": {
+          "detail": " logic"
+        },
+        "kind": "Variable",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\nlogic internal_state;\n````"
+        },
+        "filterText": "internal_state",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 36,
+              "character": 17
+            },
+            "end": {
+              "line": 36,
+              "character": 17
+            }
+          },
+          "newText": "internal_state"
+        }
+      },
+      {
+        "label": "rst",
+        "labelDetails": {
+          "detail": " input logic"
+        },
+        "kind": "Interface",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\ninput logic rst\n````"
+        },
+        "filterText": "rst",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 36,
+              "character": 17
+            },
+            "end": {
+              "line": 36,
+              "character": 17
+            }
+          },
+          "newText": "rst"
+        }
+      },
+      {
+        "label": "valid",
+        "labelDetails": {
+          "detail": " output logic"
+        },
+        "kind": "Interface",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\noutput logic valid\n````"
+        },
+        "filterText": "valid",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 36,
+              "character": 17
+            },
+            "end": {
+              "line": 36,
+              "character": 17
+            }
+          },
+          "newText": "valid"
+        }
+      }
+    ]
+  }
+]

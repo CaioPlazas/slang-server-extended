@@ -1,0 +1,224 @@
+[
+  {
+    "port_list": [
+      {
+        "label": "base_pkg",
+        "labelDetails": {
+          "detail": " Package"
+        },
+        "kind": "Module",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\npackage base_pkg;\n````"
+        },
+        "filterText": "base_pkg",
+        "insertText": "base_pkg",
+        "insertTextFormat": "PlainText",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "base_pkg"
+        }
+      },
+      {
+        "label": "mailbox",
+        "labelDetails": {
+          "detail": " ",
+          "description": "std"
+        },
+        "kind": "Class",
+        "documentation": "",
+        "filterText": "mailbox",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "mailbox"
+        }
+      },
+      {
+        "label": "process",
+        "labelDetails": {
+          "detail": " ",
+          "description": "std"
+        },
+        "kind": "Class",
+        "documentation": "",
+        "filterText": "process",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "process"
+        }
+      },
+      {
+        "label": "semaphore",
+        "labelDetails": {
+          "detail": " ",
+          "description": "std"
+        },
+        "kind": "Class",
+        "documentation": "",
+        "filterText": "semaphore",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "semaphore"
+        }
+      },
+      {
+        "label": "test_intf",
+        "labelDetails": {
+          "detail": " Interface"
+        },
+        "kind": "Module",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\ninterface test_intf;\n````"
+        },
+        "filterText": "test_intf",
+        "insertText": "test_intf",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "test_intf"
+        }
+      },
+      {
+        "label": "util_pkg",
+        "labelDetails": {
+          "detail": " Package"
+        },
+        "kind": "Module",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\npackage util_pkg;\n````"
+        },
+        "filterText": "util_pkg",
+        "insertText": "util_pkg",
+        "insertTextFormat": "PlainText",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "util_pkg"
+        }
+      },
+      {
+        "label": "weak_reference",
+        "labelDetails": {
+          "detail": " ",
+          "description": "std"
+        },
+        "kind": "Class",
+        "documentation": "",
+        "filterText": "weak_reference",
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 8
+            },
+            "end": {
+              "line": 3,
+              "character": 8
+            }
+          },
+          "newText": "weak_reference"
+        }
+      }
+    ]
+  },
+  {
+    "modports": [
+      {
+        "label": "follower",
+        "kind": "Field",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\nmodport follower\n````"
+        },
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 10,
+              "character": 18
+            },
+            "end": {
+              "line": 10,
+              "character": 18
+            }
+          },
+          "newText": "follower"
+        }
+      },
+      {
+        "label": "leader",
+        "kind": "Field",
+        "documentation": {
+          "kind": "markdown",
+          "value": "````systemverilog\nmodport leader\n````"
+        },
+        "textEdit": {
+          "range": {
+            "start": {
+              "line": 10,
+              "character": 18
+            },
+            "end": {
+              "line": 10,
+              "character": 18
+            }
+          },
+          "newText": "leader"
+        }
+      }
+    ]
+  }
+]

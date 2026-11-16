@@ -1,0 +1,45 @@
+### Building from Source
+
+
+`slang-server` requires the following tools in order to build:
+- [python 3](https://www.python.org/)
+- [CMake](https://cmake.org/) (3.28 or later)
+- C++20 compatible compiler. Minimum supported compiler versions:
+    - GCC 11
+    - clang 17
+    - Xcode 16
+    - MSVC support is tested only against the most recent update of VS 2022
+
+
+```bash
+# Clone the repository
+git clone https://github.com/hudson-trading/slang-server.git
+cd slang-server
+
+# Pull direct dependencies (slang, reflect-cpp, and ctre)
+git submodule update --init
+
+# Build with cmake using a C++20 compliant compiler
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j --target slang_server
+```
+
+Only direct submodules are needed. Leave out `--recursive` to skip reflect-cpp's
+optional `vcpkg` submodule; slang-server uses its bundled JSON support with
+`REFLECTCPP_USE_VCPKG=OFF` by default.
+
+The binary will be at `build/bin/slang-server`.
+
+### Nix Development Shell
+
+If you use Nix with flakes enabled, the repository provides a development shell for x86-64 Linux, ARM64 Linux, and Apple Silicon macOS. It includes the compiler, CMake, Ninja, Python, `uv`, and build and test dependencies.
+
+After cloning the repository and initializing its submodules, run from the repository root:
+
+```bash
+nix develop
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j8 --target slang_server
+```
+
+The shell supplies the tools; the CMake commands build `build/bin/slang-server`. Use a separate build directory if an existing one was configured with a different compiler.
